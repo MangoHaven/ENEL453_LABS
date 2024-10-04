@@ -10,73 +10,57 @@ module switch_logic (
 );
 
     logic [15:0] bcd_out;
-    logic debounced_btn1, pulse1, detected1;
-    logic debounced_btn2, pulse2, detected2;
-    logic debounced_btn3, pulse3, detected3;
-    logic select1 = 1'b0; // valid for fpga but meaningless in asic 
-    logic select3 = 1'b0;
+    logic pulse_U, detected_U;
+    logic pulse_L, detected_L;
+    logic pulse_R, detected_R;
+    logic select_U = 1'b0; // valid for fpga but meaningless in asic 
+    logic select_R = 1'b0;
     logic [15:0] switches_read;
     logic [15:0] held_switches = 16'b0;
     
-    lab_3_debounce DEBOUNCE1 (
-        .clk(clk),
-        .reset_n(~reset),
-        .button(btnU),
-        .result(debounced_btn1)
-    );
-    lab_3_debounce DEBOUNCE2 (
-        .clk(clk),
-        .reset_n(~reset),
-        .button(btnR),
-        .result(debounced_btn2)
-    );
-    lab_3_debounce DEBOUNCE3 (
-        .clk(clk),
-        .reset_n(~reset),
-        .button(btnL),
-        .result(debounced_btn3)
-    );
+    
     //TODO Pulse Detector and select resettable
     always_ff @(posedge clk) begin
-        detected1 <= debounced_btn1;
+        detected_U <= btnU;
     end
     
-    assign pulse1 = ~debounced_btn1 & detected1;
+    assign pulse_U = ~btnU & detected_U;
     always_ff @(posedge clk) begin
         if(reset)begin
-            select1 <= 1'b0;
-        end else if(pulse1)begin   
-            select1 <= ~select1;
+            select_U <= 1'b0;
+        end else if(pulse_U)begin   
+            select_U <= ~select_U;
         end
     end
     
     always_ff @(posedge clk) begin
-        detected2 <= debounced_btn2;
+        detected_L <= btnL;
     end
     
-    assign pulse2 = ~debounced_btn2 & detected2;
+    assign pulse_L = ~btnL & detected_L;
+    
     always_ff @(posedge clk) begin
-        detected3 <= debounced_btn3;
+        detected_R <= btnR;
     end
     
-    assign pulse3 = ~debounced_btn3 & detected3;
+    assign pulse_R = ~btnR & detected_R;
     always_ff @(posedge clk) begin
         if(reset)begin
-            select3 <= 1'b0;
-        end else if(pulse3)begin   
-            select3 <= ~select3;
+            select_R <= 1'b0;
+        end else if(pulse_R)begin   
+            select_R <= ~select_R;
         end
     end
     always_ff @(posedge clk) begin
         if(reset)begin
             held_switches <= 16'b0;
-        end else if(pulse2)begin   
+        end else if(pulse_L)begin   
             held_switches <= switches_inputs[15:0];
         end
     end
     
     always_ff @(posedge clk) begin
-        if(select3) begin
+        if(select_R) begin
             switches_read <= held_switches[15:0];
         end else begin
             switches_read <= switches_inputs[15:0];
@@ -90,7 +74,7 @@ module switch_logic (
     );
     
     always_ff @(posedge clk) begin
-        if (select1) begin
+        if (select_U) begin
             if(switches_read >= 16'h2710)begin
                 switches_outputs <= 16'hE000;
                 led_out <= 16'hFFFF;

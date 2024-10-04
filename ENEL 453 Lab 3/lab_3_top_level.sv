@@ -14,16 +14,43 @@ module lab_3_top_level (
     
     logic [15:0] switches_outputs;
     logic [15:0] led_output;
+    logic [15:0] switches_synced;
+    logic debounced_btnU;
+    logic debounced_btnL;
+    logic debounced_btnR;
     
     // Instantiate components
-    
+    synchronizer SWITCH_SYNC (
+        .signal(switches_inputs),
+        .clk(clk),
+        .reset(reset),
+        .sync_signal(switches_synced)
+    );
+    lab_3_debounce DEBOUNCE_U (
+        .clk(clk),
+        .reset(reset),
+        .button(btnU),
+        .result(debounced_btnU)
+    );
+    lab_3_debounce DEBOUNCE_L (
+        .clk(clk),
+        .reset(reset),
+        .button(btnR),
+        .result(debounced_btnL)
+    );
+    lab_3_debounce DEBOUNCE_R (
+        .clk(clk),
+        .reset(reset),
+        .button(btnL),
+        .result(debounced_btnR)
+    );
     
     switch_logic SWITCHES (
-         .switches_inputs(switches_inputs),
+         .switches_inputs(switches_synced),
          .switches_outputs(switches_outputs),
-         .btnU(btnU),
-         .btnR(btnR),
-         .btnL(btnL),
+         .btnU(debounced_btnU),
+         .btnR(debounced_btnR),
+         .btnL(debounced_btnL),
          .clk(clk),
          .led_out(led_output),
          .reset(reset)

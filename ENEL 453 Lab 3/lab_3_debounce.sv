@@ -20,9 +20,9 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module lab_3_debounce #(parameter clk_freq = 100_000_000, stable_time = 20)
+module lab_3_debounce #(parameter clk_freq = 100_000_000, stable_time = 50)
     (input logic clk,
-                reset_n,
+                reset,
                 button,
      output logic result);
      
@@ -32,8 +32,8 @@ module lab_3_debounce #(parameter clk_freq = 100_000_000, stable_time = 20)
      localparam int max_count = clk_freq * stable_time/1000;
      logic [$clog2(max_count):0] count;
      
-     always_ff @(posedge clk, negedge reset_n) begin
-        if(!reset_n) begin
+     always_ff @(posedge clk) begin
+        if(reset) begin
             ff1 <= 0;
             ff2 <= 0;
             ff3 <= 0;
@@ -47,8 +47,8 @@ module lab_3_debounce #(parameter clk_freq = 100_000_000, stable_time = 20)
      assign result = ff3;
      assign sclr = ff1 ^ ff2;
      
-     always_ff @(posedge clk, negedge reset_n) begin
-        if(!reset_n)
+     always_ff @(posedge clk) begin
+        if(reset)
             count <=0;
         else if (sclr)
             count <= 0;
